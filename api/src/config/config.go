@@ -27,8 +27,8 @@ func Carregar() {
 	}
 
 	StringConexcaoBanco = fmt.Sprintf("%s:%s@/%s?charset=utf8&parseTime=True&loc=Local",
-		os.Getenv("DB_USERNAME"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_NAME"),
+		os.Getenv("DB_USUARIO"),
+		os.Getenv("DB_SENHA"),
+		os.Getenv("DB_NOME"),
 	)
 }
