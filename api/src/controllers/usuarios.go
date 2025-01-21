@@ -8,6 +8,10 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"strconv"
+	"strings"
+
+	"github.com/gorilla/mux"
 )
 
 // CriarUsuario cria um usuario no banco
@@ -19,7 +23,12 @@ func CriarUsuario(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var usuario modelos.Usuario
-	if err := json.Unmarshal(corpoRequest, &usuario); err != nil {
+	if err = json.Unmarshal(corpoRequest, &usuario); err != nil {
+		respostas.Erro(w, http.StatusBadRequest, err)
+		return
+	}
+
+	if err = usuario.Preparar(); err != nil {
 		respostas.Erro(w, http.StatusBadRequest, err)
 		return
 	}
@@ -42,12 +51,47 @@ func CriarUsuario(w http.ResponseWriter, r *http.Request) {
 
 // BuscarUsuarios busca todos os usuarios no banco
 func BuscarUsuarios(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Buscando todos os usuarios"))
+	//w.Write([]byte("Buscando todos os usuarios"))
+	nomeOuNick := strings.ToLower(r.URL.Query().Get("usuario"))
+
+	db, err := banco.Conectar()
+	if err != nil {
+		respostas.Erro(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repositorio := repositorios.NovoRepositorioDeUsuarios(db)
+	usuarios, err := repositorio.Buscar(nomeOuNick)
+	if err != nil {
+		respostas.Erro(w, http.StatusInternalServerError, err)
+		return
+	}
+	respostas.JSON(w, http.StatusOK, usuarios)
 }
 
 // BuscarUsuario busca um usuario no banco
 func BuscarUsuario(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Buscando um usuario"))
+	parametros := mux.Vars(r)
+
+	usuarioID, err := strconv.ParseUint(parametros["usuarioId"], 10, 64)
+	if err != nil {
+		respostas.Erro(w, http.StatusBadRequest, err)
+	}
+	db, err := banco.Conectar()
+	if err != nil {
+		respostas.Erro(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repositorio := repositorios.NovoRepositorioDeUsuarios(db)
+	usuario, err := repositorio.BuscarPorID(usuarioID)
+	if err != nil {
+		respostas.Erro(w, http.StatusInternalServerError, err)
+		return
+	}
+	respostas.JSON(w, http.StatusOK, usuario)
 }
 
 // AtualizarUsuario atualiza um usuario no banco
