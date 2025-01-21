@@ -21,8 +21,11 @@ jobs:
       with:
         go-version: '1.20'
 
+    - name: set working directory
+      run: cd api
+
     - name: Build
-      run: go build -v ./api/...
+      run: go build -v .
 
     # - name: Test
     #   run: go test -v ./...
