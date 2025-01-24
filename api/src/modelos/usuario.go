@@ -2,6 +2,7 @@ package modelos
 
 import (
 	"errors"
+	"github.com/badoux/checkmail"
 	"strings"
 	"time"
 )
@@ -34,6 +35,9 @@ func (usuario *Usuario) validar(etapa string) error {
 	}
 	if usuario.Email == "" {
 		return errors.New("O Email eh obrigatorio e nao pode estar em branco")
+	}
+	if err := checkmail.ValidateFormat(usuario.Email); err != nil {
+		return errors.New("O Email inserido eh invalido")
 	}
 	if etapa == "cadastro" && usuario.Senha == "" {
 		return errors.New("O Senha eh obrigatorio e nao pode estar em branco")
